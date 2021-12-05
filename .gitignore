@@ -1,2 +1,4 @@
 .idea/
 store.json
+__pycache__/
+libs/__pycache__/
