@@ -230,9 +230,7 @@ class Magio:
                 self._store_session(self._data)
         else:
             self._store_session(SessionData())
-            error_code = resp['errorCode']
-            if error_code == 'INVALID_CREDENTIALS':
-                raise Exception
+            raise Exception(str(resp['errorMessage']))
 
     def _get(self, url, params=None, **kwargs):
         try:
