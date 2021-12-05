@@ -181,9 +181,6 @@ class Magio:
         return ret
 
     def _login(self):
-        # if (_user_name is None) or (_password is None):
-        #     raise Exception
-
         self._load_session(self._data)
 
         if not self._data.access_token:

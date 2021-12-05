@@ -18,7 +18,7 @@ parser.add_argument('--until', type=int, default=3, help="Set number of days unt
 args = parser.parse_args()
 
 # init MagioTV service
-service = magioService.Magio(args.username, args.password, args.back, args.until)
+service = magioService.Magio(None, None, args.back, args.until)
 
 
 # hours - n hours to sleep between every generating
