@@ -20,6 +20,8 @@ service = magioService.Magio(os.environ.get('USERNAME'), os.environ.get('PASSWOR
 @app.route('/')
 def home():
     epg_file = os.path.join(os.path.curdir, 'data/epg.xml')
+    if not os.path.exists(epg_file):
+        return "No EPG file generated yet"
     time_float = os.path.getmtime(epg_file)
     date = datetime.fromtimestamp(time_float)
     local = date.astimezone(pytz.timezone('Europe/Prague'))
