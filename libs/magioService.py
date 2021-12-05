@@ -101,7 +101,7 @@ class Magio:
                 data.__dict__ = json.load(f)
 
     def _load_channels(self) -> Dict:
-        self._login()
+        self._access()
         resp = self._get('https://skgo.magio.tv/v2/television/channels',
                          params={'list': 'LIVE', 'queryScope': 'LIVE'},
                          headers=self._auth_headers())
@@ -180,21 +180,23 @@ class Magio:
 
         return ret
 
+    def _access(self):
+        self._post('https://skgo.magio.tv/v2/auth/init',
+                   params={'dsid': 'Netscape.' + str(int(time.time())) + '.' + str(random.random()),
+                           'deviceName': 'Web Browser',
+                           'deviceType': 'OTT_WIN',
+                           'osVersion': '0.0.0',
+                           'appVersion': '0.0.0',
+                           'language': 'SK'},
+                   headers={'Origin': 'https://www.magiogo.sk', 'Pragma': 'no-cache',
+                            'Referer': 'https://www.magiogo.sk/', 'User-Agent': UA,
+                            'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'cross-site'})
+
     def _login(self):
         self._load_session(self._data)
 
         if not self._data.access_token:
-            self._post('https://skgo.magio.tv/v2/auth/init',
-                       params={'dsid': 'Netscape.' + str(int(time.time())) + '.' + str(random.random()),
-                               'deviceName': 'Web Browser',
-                               'deviceType': 'OTT_WIN',
-                               'osVersion': '0.0.0',
-                               'appVersion': '0.0.0',
-                               'language': 'SK'},
-                       headers={'Origin': 'https://www.magiogo.sk', 'Pragma': 'no-cache',
-                                'Referer': 'https://www.magiogo.sk/', 'User-Agent': UA,
-                                'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'cross-site'})
-
+            self._access()
             self._post('https://skgo.magio.tv/v2/auth/login',
                        jsonData={'loginOrNickname': self.user, 'password': self.password},
                        headers=self._auth_headers())
