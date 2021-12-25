@@ -1,7 +1,10 @@
+import os
 from datetime import datetime
 
 import ffmpeg
 import logging
+
+cmd = os.environ.get('FFMPEG_PATH')
 
 
 class Recorder:
@@ -15,7 +18,7 @@ class Recorder:
             (
                 ffmpeg.input(self.stream)
                 .output(output, **{'t': self.duration * 60})
-                .run(capture_stdout=True, capture_stderr=True)
+                .run(capture_stdout=True, capture_stderr=True, **(dict(cmd=cmd) if cmd is not None else dict()))
             )
         except ffmpeg.Error as e:
             print('stdout:', e.stdout.decode('utf8'))
