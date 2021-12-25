@@ -86,13 +86,10 @@ class Magio:
         self.from_days = from_days
         self.to_days = until_days
         self._channels = {}
-        self.storage_path = os.path.curdir
-        self.storage_file = os.path.join(self.storage_path, 'store.json')
+        self.storage_file = os.path.join(os.path.curdir, 'store.json')
 
     def _store_session(self, data):
-        if not os.path.exists(self.storage_path):
-            os.makedirs(self.storage_path)
-        with open(self.storage_file, 'w') as f:
+        with open(self.storage_file, 'w+') as f:
             json.dump(data.__dict__, f)
 
     def _load_session(self, data):
@@ -121,7 +118,7 @@ class Magio:
     def get_stream(self, channel_id):
         self._login()
         resp = self._get('https://skgo.magio.tv/v2/television/stream-url',
-                         params={'service': 'LIVE', 'name': 'Repl', 'devtype': 'OTT_ANDROID',
+                         params={'service': 'LIVE', 'name': 'TV', 'devtype': 'OTT_ANDROID',
                                  'id': channel_id, 'prof': 'p3', 'ecid': '', 'drm': 'verimatrix'},
                          headers=self._auth_headers())
         return resp['url']
@@ -183,8 +180,8 @@ class Magio:
     def _access(self):
         self._post('https://skgo.magio.tv/v2/auth/init',
                    params={'dsid': 'Netscape.' + str(int(time.time())) + '.' + str(random.random()),
-                           'deviceName': 'Web Browser',
-                           'deviceType': 'OTT_WIN',
+                           'deviceName': 'TV',
+                           'deviceType': 'OTT_ANDROID',
                            'osVersion': '0.0.0',
                            'appVersion': '0.0.0',
                            'language': 'SK'},

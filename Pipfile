@@ -8,6 +8,7 @@ requests = "*"
 pytz = "*"
 ffmpeg-python = "*"
 flask = "*"
+django = "*"
 
 [dev-packages]
 

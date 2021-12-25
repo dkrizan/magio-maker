@@ -2,23 +2,15 @@ import logging
 import os.path
 import requests
 import time
-import argparse
+import sys
 
 from libs import magioService
-from server import start_flask_thread
 
 # config
 logging.basicConfig(filename='log/errors.log', format='%(asctime)s %(message)s', level=logging.WARN)
 
-parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--username', type=str, help="Username/login")
-parser.add_argument('--password', type=str, help="User password")
-parser.add_argument('--back', type=int, default=2, help="Set number of days back to generate EPG (default: 2)")
-parser.add_argument('--until', type=int, default=3, help="Set number of days until to generate EPG (default: 3)")
-args = parser.parse_args()
-
 # init MagioTV service
-service = magioService.Magio(None, None, args.back, args.until)
+service = magioService.Magio(None, None, 2, 3)
 
 
 # hours - n hours to sleep between every generating
@@ -35,6 +27,20 @@ def generate_epg_constantly(hours):
         time.sleep(hours * 60 * 60)
 
 
+def runner():
+    """Run administrative tasks."""
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'server.settings')
+    try:
+        from django.core.management import execute_from_command_line
+    except ImportError as exc:
+        raise ImportError(
+            "Couldn't import Django. Are you sure it's installed and "
+            "available on your PYTHONPATH environment variable? Did you "
+            "forget to activate a virtual environment?"
+        ) from exc
+    execute_from_command_line(sys.argv)
+
+
 if __name__ == '__main__':
-    start_flask_thread()
+    runner()
     generate_epg_constantly(2)
