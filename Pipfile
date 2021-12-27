@@ -9,6 +9,7 @@ pytz = "*"
 ffmpeg-python = "*"
 flask = "*"
 django = "*"
+django-heroku = "*"
 
 [dev-packages]
 
