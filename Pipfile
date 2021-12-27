@@ -10,6 +10,7 @@ ffmpeg-python = "*"
 flask = "*"
 django = "*"
 django-heroku = "*"
+gunicorn = "*"
 
 [dev-packages]
 
