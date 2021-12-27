@@ -19,5 +19,6 @@ from . import views
 urlpatterns = [
     path('', views.index),
     path('record', views.record),
-    path('channels', views.channels)
+    path('channels', views.channels),
+    path('generate-epg', views.generate_epg)
 ]

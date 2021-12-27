@@ -6,6 +6,7 @@ import os
 from datetime import datetime
 import pytz
 from django.views.decorators.csrf import csrf_exempt
+import requests
 
 from libs import magioService
 from libs.recorder import Recorder
@@ -17,7 +18,7 @@ password = os.environ.get('PASSWORD')
 if username is None or password is None:
     raise EnvironmentError('Environmental variables "USERNAME" or "PASSWORD" are missing')
 
-service = magioService.Magio(os.environ.get('USERNAME'), os.environ.get('PASSWORD'))
+service = magioService.Magio(os.environ.get('USERNAME'), os.environ.get('PASSWORD'), 2, 3)
 
 
 def index(request):
@@ -43,3 +44,16 @@ def channels(request):
     data = service.get_channels()
     content = {c.id: c.name for (k, c) in data.items()}
     return HttpResponse(json.dumps(content))
+
+
+# generate epg and upload to borec
+def generate_epg(request):
+    epg_file = os.path.dirname(os.path.abspath(__file__)) + "/../data/epg.xml"
+    service.generate(epg_file)
+    print("Uploading to borec")
+    r = requests.put('http://epg.borec.cz/datastorage.php', data=open(epg_file, 'rb'))
+    if r.status_code == 200:
+        print("Done!")
+    else:
+        logging.error('Uploading to borec.cz failed!')
+    return HttpResponse("Done!")
