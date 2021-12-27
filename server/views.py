@@ -10,6 +10,7 @@ import requests
 
 from libs import magioService
 from libs.recorder import Recorder
+from multiprocessing import Pool
 
 logging.basicConfig(filename='log/errors.log', format='%(asctime)s %(message)s', level=logging.ERROR)
 
@@ -46,8 +47,7 @@ def channels(request):
     return HttpResponse(json.dumps(content))
 
 
-# generate epg and upload to borec
-def generate_epg(request):
+def _run_generating_epg():
     epg_file = os.path.dirname(os.path.abspath(__file__)) + "/../data/epg.xml"
     service.generate(epg_file)
     print("Uploading to borec")
@@ -56,4 +56,11 @@ def generate_epg(request):
         print("Done!")
     else:
         logging.error('Uploading to borec.cz failed!')
-    return HttpResponse("Done!")
+
+
+# generate epg and upload to borec
+def generate_epg(request):
+    pool = Pool(processes=1)
+    pool.apply_async(_run_generating_epg)
+    return HttpResponse("Epg creating started !")
+
