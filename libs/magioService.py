@@ -32,9 +32,23 @@ class SessionData:
         self.type = ''
 
 
+class MagioGoDevice:
+    def __init__(self):
+        self.id = ''
+        self.name = ''
+        self.expiration_time = None
+        self.is_this = False
+
+
 class Base:
     def __repr__(self):
         return str(__dict__)
+
+
+class MagioGoException(BaseException):
+    def __init__(self, message, code):
+        self.message = message
+        self.code = code
 
 
 class Channel(Base):
@@ -189,6 +203,25 @@ class Magio:
                             'Referer': 'https://www.magiogo.sk/', 'User-Agent': UA,
                             'Sec-Fetch-Mode': 'cors', 'Sec-Fetch-Site': 'cross-site'})
 
+    def devices(self):
+        # type: () -> List[MagioGoDevice]
+        def make_device(i, is_this):
+            device = MagioGoDevice()
+            device.id = str(i['id'])
+            device.name = i['name']
+            device.expiration_time = self._strptime(i['verimatrixExpirationTime'], "%Y-%m-%dT%H:%M:%S.%fZ")
+            device.is_this = is_this
+            return device
+
+        self._login()
+        resp = self._get('https://skgo.magio.tv/home/listDevices', headers=self._auth_headers())
+
+        devices = [make_device(i, False) for i in resp['items']]
+
+        if resp['thisDevice']:
+            devices.append(make_device(resp['thisDevice'], True))
+        return devices
+
     def _login(self):
         self._load_session(self._data)
 
@@ -210,6 +243,17 @@ class Magio:
             return resp
         except requests.exceptions.ConnectionError as err:
             raise ConnectionError(str(err))
+        except MagioGoException as e:
+            self._is_max_device_limit(e)
+            resp = self._request().post(url, data=data, json=jsonData, **kwargs).json()
+            self._check_response(resp)
+            return resp
+
+    def disconnect_device(self, device_id):
+        # type: (str) -> None
+        self._login()
+        self._get('https://skgo.magio.tv/home/deleteDevice', params={'id': device_id}, headers=self._auth_headers())
+
 
     def _auth_headers(self):
         return {'Authorization': self._data.type + ' ' + self._data.access_token,
@@ -226,7 +270,14 @@ class Magio:
                 self._store_session(self._data)
         else:
             self._store_session(SessionData())
-            raise Exception(str(resp['errorMessage']))
+            raise MagioGoException(str(resp['errorMessage']), resp['errorCode'])
+
+    def _is_max_device_limit(self, e):
+        if e.code == 'DEVICE_MAX_LIMIT':
+            device = min([d for d in self.devices() if not d.is_this])
+            self.disconnect_device(device.id)
+            return True
+        return False
 
     def _get(self, url, params=None, **kwargs):
         try:
@@ -235,6 +286,11 @@ class Magio:
             return resp
         except requests.exceptions.ConnectionError as err:
             raise ConnectionError(str(err))
+        except MagioGoException as e:
+            self._is_max_device_limit(e)
+            resp = self._request().get(url, params=params, **kwargs).json()
+            self._check_response(resp)
+            return resp
 
     def _programme_data(self, pi):
         def safe_int(value, default=None):
@@ -316,6 +372,15 @@ class Magio:
                       HTTPAdapter(
                           max_retries=Retry(total=5, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])))
         return session
+
+    @staticmethod
+    def _strptime(date_string, format):
+        # https://forum.kodi.tv/showthread.php?tid=112916 it's insane !!!
+        try:
+            return datetime.strptime(date_string, format)
+        except TypeError:
+            import time as ptime
+            return datetime(*(ptime.strptime(date_string, format)[0:6]))
 
     def generate(self, output):
         print("Fetching channels")
