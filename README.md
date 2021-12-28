@@ -8,4 +8,4 @@ Simple Magio app for generating EPG file and recording TV programmes.
 | **FFMPEG_PATH** | Custom ffmpeg build path
 
 ## TODO list
-- [ ] Automatically free up device list
+- [x] Automatically free up device list
