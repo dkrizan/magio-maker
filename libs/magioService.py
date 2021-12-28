@@ -244,10 +244,10 @@ class Magio:
         except requests.exceptions.ConnectionError as err:
             raise ConnectionError(str(err))
         except MagioGoException as e:
-            self._is_max_device_limit(e)
-            resp = self._request().post(url, data=data, json=jsonData, **kwargs).json()
-            self._check_response(resp)
-            return resp
+            if self._is_max_device_limit(e):
+                resp = self._request().post(url, data=data, json=jsonData, **kwargs).json()
+                self._check_response(resp)
+                return resp
 
     def disconnect_device(self, device_id):
         # type: (str) -> None
@@ -287,10 +287,10 @@ class Magio:
         except requests.exceptions.ConnectionError as err:
             raise ConnectionError(str(err))
         except MagioGoException as e:
-            self._is_max_device_limit(e)
-            resp = self._request().get(url, params=params, **kwargs).json()
-            self._check_response(resp)
-            return resp
+            if self._is_max_device_limit(e):
+                resp = self._request().get(url, params=params, **kwargs).json()
+                self._check_response(resp)
+                return resp
 
     def _programme_data(self, pi):
         def safe_int(value, default=None):
